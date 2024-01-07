@@ -20,10 +20,12 @@ if st.session_state.page=="tabela":
 	if carrega:
 		st.session_state.page="relatorio"
 		st.session_state.path = pd.read_excel(carrega)
+		del st.session_state.ano
 		st.rerun()
 	if gera_modelo:
 		st.session_state.page="relatorio"
 		st.session_state.path = pd.read_excel("modelo.xlsx")
+		del st.session_state.ano
 		st.rerun()
 
 elif st.session_state.page=="relatorio":
