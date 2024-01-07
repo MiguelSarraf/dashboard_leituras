@@ -14,11 +14,16 @@ if st.session_state.page=="tabela":
 	st.write("Aqui você pode criar sua retrospectiva de leituras.")
 	st.write("Baixe a planilha modelo ou suba sua planilha preenchida nos botões abaixo:")
 	col1, col2=st.columns([1,1])
-	botao1=col1.download_button("Clique aqui para baixar o modelo de tabela", data=open("./modelo.xlsx", "rb"), file_name="modelo.xlsx")
-	botao2=col2.file_uploader("Suba aqui sua tabela para montar seu relatório", type=["xlsx"])
-	if botao2:
+	baixa_modelo=col1.download_button("Clique aqui para baixar o modelo de tabela", data=open("./modelo.xlsx", "rb"), file_name="modelo.xlsx")
+	gera_modelo=col1.button("Clique aqui para gerar relatório com a tabela de exemplo")
+	carrega=col2.file_uploader("Suba aqui sua tabela para montar seu relatório", type=["xlsx"])
+	if carrega:
 		st.session_state.page="relatorio"
-		st.session_state.path = pd.read_excel(botao2)
+		st.session_state.path = pd.read_excel(carrega)
+		st.rerun()
+	if gera_modelo:
+		st.session_state.page="relatorio"
+		st.session_state.path = pd.read_excel("modelo.xlsx")
 		st.rerun()
 
 elif st.session_state.page=="relatorio":
