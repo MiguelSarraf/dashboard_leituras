@@ -60,7 +60,7 @@ elif st.session_state.page=="relatorio":
 	}
 	</style>
 	""", unsafe_allow_html=True)
-	st.markdown('<p class="big-font">Utilize a barra lateral para trocar o ano da visualização.</p>', unsafe_allow_html=True)
+	if usar_anos: st.markdown('<p class="big-font">Utilize a barra lateral para trocar o ano da visualização.</p>', unsafe_allow_html=True)
 
 	_, col, _=st.columns([1,1,1])
 	botao=col.button("Clique aqui para voltar à tela inicial", key="voltar")
