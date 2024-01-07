@@ -25,9 +25,8 @@ def faz_grafico(livros, usar_ano, ano):
     lim_sup=Q3+1.5*IQR
 
     """##Agregações"""
-    cor_ranking=livros.query("ranking>0")[["ranking"]].sort_values("ranking").reset_index()
+    cor_ranking=livros.query("ranking>0")[["livro", "ranking"]].sort_values("ranking").reset_index()
     cor_ranking["cor_ranking"]=cor_ranking.index%2
-    livros=livros.merge(cor_ranking, on="ranking", how="left").fillna(0)
 
     livros_mes=livros.groupby(["ano", "mes"]).agg({"livro":"count"}).reset_index()
     livros_mes["num_livros"]="Número de Livros"
@@ -348,7 +347,7 @@ def faz_grafico(livros, usar_ano, ano):
         height=base_height
     )
 
-    nomes_livros=alt.Chart(livros.query("ranking>0").sort_values("ranking")).mark_text(baseline="middle", size=font_size_grphs_title, font=font_graphs, lineBreak='\n').encode(
+    nomes_livros=alt.Chart(cor_ranking).mark_text(baseline="middle", size=font_size_grphs_title, font=font_graphs, lineBreak='\n').encode(
         y=alt.Y('ranking:O',axis=None),
         text="livro",
         color=alt.Color(
