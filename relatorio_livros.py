@@ -78,10 +78,9 @@ def faz_grafico(livros, ano):
     ## Interatividade
     """
 
-    dropdown = alt.binding_select(options= livros.ano.astype(int).unique())
-    selector_livro = alt.selection_multi(fields=["livro"], name="selector_livro")
-    selector_estilo = alt.selection_multi(fields=["estilo"], name="selector_estilo")
-    selector_nacionalidade = alt.selection_multi(fields=["nacionalidade"], name="selector_nacionalidade")
+    selector_livro = alt.selection_point(fields=["livro"], name="selector_livro")
+    selector_estilo = alt.selection_point(fields=["estilo"], name="selector_estilo")
+    selector_nacionalidade = alt.selection_point(fields=["nacionalidade"], name="selector_nacionalidade")
 
     """##Livros por mês"""
 
