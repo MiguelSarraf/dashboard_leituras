@@ -25,7 +25,7 @@ def faz_grafico(livros, usar_ano, ano):
     lim_sup=Q3+1.5*IQR
 
     """##Agregações"""
-    cor_ranking=livros.query("ranking>0")[["livro", "ranking"]].sort_values("ranking").reset_index()
+    cor_ranking=livros.query("ranking>0")[["livro", "autor", "nacionalidade", "ranking"]].sort_values("ranking").reset_index()
     cor_ranking["cor_ranking"]=cor_ranking.index%2
 
     livros_mes=livros.groupby(["ano", "mes"]).agg({"livro":"count"}).reset_index()
