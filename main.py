@@ -39,11 +39,12 @@ elif st.session_state.page=="relatorio":
 		buttons_anos=[]
 		for ano in anos:
 			buttons_anos.append(st.sidebar.button(str(ano), key=ano))
-		if "ano" not in st.session_state:st.session_state.ano=max(anos)
+		usar_anos=True
 	else:
-		st.session_state.ano=None
+		usar_anos=False
+	if "ano" not in st.session_state:st.session_state.ano=max(anos)
 
-	cria_tabs(livros, st.session_state.ano)
+	cria_tabs(livros, usar_anos, st.session_state.ano)
 
 	st.markdown("""
 	<style>
@@ -60,7 +61,7 @@ elif st.session_state.page=="relatorio":
 		st.session_state.page="tabela"
 		st.rerun()
 
-	if any(buttons_anos):
+	if usar_anos and any(buttons_anos):
 		for ano, button in zip(anos, buttons_anos):
 			if button:
 				st.session_state.ano=ano

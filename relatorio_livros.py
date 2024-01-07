@@ -3,8 +3,8 @@ import io
 import pandas as pd
 import altair as alt
 
-def faz_grafico(livros, ano):
-    if ano: livros=livros.query("ano==%s" % (ano))
+def faz_grafico(livros, usar_ano, ano):
+    if usar_ano: livros=livros.query("ano==%s" % (ano))
     """#Variáveis"""
 
     base_width=80
@@ -459,7 +459,7 @@ def faz_grafico(livros, ano):
         stroke=None
     )
 
-def cria_tabs(livros, ano):
+def cria_tabs(livros, usar_ano,  ano):
     # -*- coding: utf-8 -*-
     """relatorio_livros.ipynb
 
@@ -487,6 +487,6 @@ def cria_tabs(livros, ano):
     livros["livro"]=livros.livro.apply(lambda nome: "\n".join([nome[i:i+lim_letras] for i  in range(0, len(nome), lim_letras)]))
     livros["livro"]=livros.livro.str.replace("\n\n", "\n")
 
-    titulo, data=faz_grafico(livros, ano)
+    titulo, data=faz_grafico(livros, usar_ano, ano)
     st.altair_chart(titulo, use_container_width=True)
     st.altair_chart(data, use_container_width=True)
