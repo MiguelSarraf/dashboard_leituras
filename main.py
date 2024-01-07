@@ -35,10 +35,13 @@ elif st.session_state.page=="relatorio":
 	anos=livros.ano.astype(int).unique()
 	anos.sort()
 
-	buttons_anos=[]
-	for ano in anos:
-		buttons_anos.append(st.sidebar.button(str(ano), key=ano))
-	if "ano" not in st.session_state:st.session_state.ano=max(anos)
+	if len(anos)>1:
+		buttons_anos=[]
+		for ano in anos:
+			buttons_anos.append(st.sidebar.button(str(ano), key=ano))
+		if "ano" not in st.session_state:st.session_state.ano=max(anos)
+	else:
+		st.session_state.ano=None
 
 	cria_tabs(livros, st.session_state.ano)
 

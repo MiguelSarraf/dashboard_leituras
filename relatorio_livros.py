@@ -4,7 +4,7 @@ import pandas as pd
 import altair as alt
 
 def faz_grafico(livros, ano):
-    livros=livros.query("ano==%s" % (ano))
+    if ano: livros=livros.query("ano==%s" % (ano))
     """#Variáveis"""
 
     base_width=80
