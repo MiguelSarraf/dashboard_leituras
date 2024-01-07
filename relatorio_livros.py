@@ -265,9 +265,8 @@ def faz_grafico(livros, ano):
     ).properties(
         width=big_width,
         height=big_height,
-        title="Velocidade de leitura",
-        selection=selector_livro
-    ).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
+        title="Velocidade de leitura"
+    ).add_selection(selector_livro).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
 
     reta_rapido=alt.Chart(pd.DataFrame({"x":[0, livros.tempo.max(), livros.paginas.max()/lim_sup],
                                         "y":[0, livros.tempo.max()*lim_sup, livros.paginas.max()],
@@ -335,9 +334,8 @@ def faz_grafico(livros, ano):
     ).properties(
         width=big_width,
         height=big_height,
-        title="Livros por estilo",
-        selection=selector_estilo
-    ).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
+        title="Livros por estilo"
+    ).add_selection(selector_estilo).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
 
     """## Top livros"""
 
@@ -364,9 +362,8 @@ def faz_grafico(livros, ano):
         ]
     ).properties(
         width=base_width,
-        height=3*base_height,
-        selection=selector_livro
-    ).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
+        height=3*base_height
+    ).add_selection(selector_livro).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
 
     """## Livros por nacionalidade"""
 
@@ -406,9 +403,8 @@ def faz_grafico(livros, ano):
     ).properties(
         width=big_width,
         height=big_height,
-        title="Livros por nacionalidade",
-        selection=selector_nacionalidade
-    ).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
+        title="Livros por nacionalidade"
+    ).add_selection(selector_nacionalidade).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
 
     """## Créditos"""
 
