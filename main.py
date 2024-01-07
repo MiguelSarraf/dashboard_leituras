@@ -19,7 +19,7 @@ if st.session_state.page=="tabela":
 	if botao2:
 		st.session_state.page="relatorio"
 		st.session_state.path = pd.read_excel(botao2)
-		st.experimental_rerun()
+		st.rerun()
 
 elif st.session_state.page=="relatorio":
 	st.set_page_config(layout = "wide")
@@ -55,10 +55,10 @@ elif st.session_state.page=="relatorio":
 	botao=col.button("Clique aqui para voltar à tela inicial", key="voltar")
 	if botao:
 		st.session_state.page="tabela"
-		st.experimental_rerun()
+		st.rerun()
 
 	if any(buttons_anos):
 		for ano, button in zip(anos, buttons_anos):
 			if button:
 				st.session_state.ano=ano
-				st.experimental_rerun()
+				st.rerun()

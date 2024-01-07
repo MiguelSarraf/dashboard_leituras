@@ -27,7 +27,7 @@ def faz_grafico(livros, ano):
     """##Agregações"""
     cor_ranking=livros.query("ranking>0")[["ranking"]].sort_values("ranking").reset_index()
     cor_ranking["cor_ranking"]=cor_ranking.index%2
-    livros=livros.merge(cor_ranking, on="ranking", how="left")
+    livros=livros.merge(cor_ranking, on="ranking", how="left").fillna(0)
 
     livros_mes=livros.groupby(["ano", "mes"]).agg({"livro":"count"}).reset_index()
     livros_mes["num_livros"]="Número de Livros"
@@ -266,7 +266,7 @@ def faz_grafico(livros, ano):
         width=big_width,
         height=big_height,
         title="Velocidade de leitura"
-    ).add_selection(selector_livro).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
+    ).add_params(selector_livro).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
 
     reta_rapido=alt.Chart(pd.DataFrame({"x":[0, livros.tempo.max(), livros.paginas.max()/lim_sup],
                                         "y":[0, livros.tempo.max()*lim_sup, livros.paginas.max()],
@@ -335,7 +335,7 @@ def faz_grafico(livros, ano):
         width=big_width,
         height=big_height,
         title="Livros por estilo"
-    ).add_selection(selector_estilo).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
+    ).add_params(selector_estilo).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
 
     """## Top livros"""
 
@@ -363,7 +363,7 @@ def faz_grafico(livros, ano):
     ).properties(
         width=base_width,
         height=3*base_height
-    ).add_selection(selector_livro).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
+    ).add_params(selector_livro).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
 
     """## Livros por nacionalidade"""
 
@@ -404,7 +404,7 @@ def faz_grafico(livros, ano):
         width=big_width,
         height=big_height,
         title="Livros por nacionalidade"
-    ).add_selection(selector_nacionalidade).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
+    ).add_params(selector_nacionalidade).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
 
     """## Créditos"""
 
