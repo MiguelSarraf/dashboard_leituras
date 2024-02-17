@@ -2,6 +2,9 @@ import streamlit as st
 from relatorio_livros import cria_tabs
 import pandas as pd
 
+__version__="1.1"
+__data__="fev/24"
+
 if "page" not in st.session_state:
 	st.session_state.page="tabela"
 
@@ -17,6 +20,7 @@ if st.session_state.page=="tabela":
 	baixa_modelo=col1.download_button("Clique aqui para baixar o modelo de tabela", data=open("./modelo.xlsx", "rb"), file_name="modelo.xlsx")
 	gera_modelo=col1.button("Clique aqui para gerar relatório com a tabela de exemplo")
 	carrega=col2.file_uploader("Suba aqui sua tabela para montar seu relatório", type=["xlsx"])
+	st.write("Versão %s de %s" % (__version__, __data__))
 	if carrega:
 		st.session_state.page="relatorio"
 		st.session_state.path = pd.read_excel(carrega)

@@ -66,6 +66,7 @@ def faz_grafico(livros, usar_ano, ano):
           "paginas_por_dia":[str(round(livros.paginas.sum()/livros.tempo.sum()))+" páginas por dia"],
           "top_do_ano":["Top "+str(livros.ranking.max())+" livros do ano"],
           "titulo":["Relatório de leituras "+str(ano)],
+          "branco":[""],
           "autor":["Miguel Sarraf"],
           "autor_text":["Desenvolvido por "],
           "insta":["@sarraf_miguel"],
@@ -113,10 +114,12 @@ def faz_grafico(livros, usar_ano, ano):
             "num_livros",
             legend=alt.Legend(
                 title="",
-                orient="top-left",
+                orient="none",
                 labelFontSize=font_size_grphs,
                 symbolSize=100,
-                symbolStrokeWidth=3
+                symbolStrokeWidth=3,
+                legendX=18,
+                legendY=base_height+70
             )
         )
     ).properties(
@@ -155,10 +158,12 @@ def faz_grafico(livros, usar_ano, ano):
             "media_movel_tit",
             legend=alt.Legend(
                 title="",
-                orient="top-left",
+                orient="none",
                 labelFontSize=font_size_grphs,
                 symbolSize=100,
-                symbolStrokeWidth=3
+                symbolStrokeWidth=3,
+                legendX=18,
+                legendY=base_height+70
             )
         )
     ).properties(
@@ -173,7 +178,16 @@ def faz_grafico(livros, usar_ano, ano):
             "titulo:N"
         )
     ).properties(
-        width=3.5*big_width,
+        width=big_width/10,
+        height=base_height
+    )
+
+    branco=alt.Chart(kpis).mark_text(size=50, font=font, lineBreak='\n').encode(
+        text=alt.Text(
+            "branco"
+        )
+    ).properties(
+        width=base_width,
         height=base_height
     )
 
@@ -252,7 +266,8 @@ def faz_grafico(livros, usar_ano, ano):
                 title="Estilo",
                 orient="top-left",
                 labelFontSize=font_size_grphs,
-                titleFontSize=font_size_grphs
+                titleFontSize=font_size_grphs,
+                offset=350
             )
         ),
         tooltip=[
@@ -438,9 +453,9 @@ def faz_grafico(livros, usar_ano, ano):
     """#Dash final"""
 
     creditos=((autor_text | autor) & insta)
-    col1=((livros_por_mes+livros_movel_por_mes) & livros_por_estilo & creditos)
-    col2=(num_livros & num_paginas & num_nacionalidade & paginas_por_dia & top_do_ano & nomes_livros)
-    col3=((pontos_velocidade+reta_rapido+reta_lento) & livros_por_nacionalidade)
+    col1=(branco & (livros_por_mes+livros_movel_por_mes) & livros_por_estilo & creditos)
+    col2=(titulo & num_livros & num_paginas & num_nacionalidade & paginas_por_dia & branco & top_do_ano & nomes_livros)
+    col3=(branco & (pontos_velocidade+reta_rapido+reta_lento) & livros_por_nacionalidade)
 
     data=((col1 | col2 | col3)).resolve_scale(
         color='independent',
@@ -451,13 +466,10 @@ def faz_grafico(livros, usar_ano, ano):
         y="independent"
     )
 
-    return titulo, data.configure_title(
+    return data.configure_title(
         font=font_graphs,
         fontSize=1.5*font_size_grphs_title
-    ).configure_view(
-        stroke=None
     )
-
 def cria_tabs(livros, usar_ano,  ano):
     # -*- coding: utf-8 -*-
     """relatorio_livros.ipynb
@@ -486,6 +498,5 @@ def cria_tabs(livros, usar_ano,  ano):
     livros["livro"]=livros.livro.apply(lambda nome: "\n".join([nome[i:i+lim_letras] for i  in range(0, len(nome), lim_letras)]))
     livros["livro"]=livros.livro.str.replace("\n\n", "\n")
 
-    titulo, data=faz_grafico(livros, usar_ano, ano)
-    st.altair_chart(titulo, use_container_width=True)
+    data=faz_grafico(livros, usar_ano, ano)
     st.altair_chart(data, use_container_width=True)
