@@ -1,9 +1,10 @@
 import streamlit as st
 from relatorio_livros import cria_tabs
 import pandas as pd
+from streamlit_js_eval import streamlit_js_eval
 
-__version__="1.1"
-__data__="fev/24"
+__version__="1.2"
+__data__="mar/24"
 
 if "page" not in st.session_state:
 	st.session_state.page="tabela"
@@ -12,6 +13,7 @@ if "page" not in st.session_state:
 
 if st.session_state.page=="tabela":
 	st.set_page_config(layout = "centered")
+	st.session_state.window_width=streamlit_js_eval(js_expressions='screen.width', key = 'SCR')
 	st.title("Retrospectiva de leituras")
 	st.write("Olá, seja bem-vind@.")
 	st.write("Aqui você pode criar sua retrospectiva de leituras.")
@@ -34,10 +36,6 @@ if st.session_state.page=="tabela":
 
 elif st.session_state.page=="relatorio":
 	st.set_page_config(layout = "wide")
-	# data=faz_grafico(st.session_state.path)
-
-	# st.altair_chart(titulo, use_container_width=True)
-	# st.altair_chart(data, use_container_width=True)
 
 	livros=st.session_state.path
 	livros["data"]=pd.to_datetime(livros.data, format="%d/%m/%y", )

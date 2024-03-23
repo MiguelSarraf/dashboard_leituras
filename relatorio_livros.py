@@ -4,19 +4,20 @@ import pandas as pd
 import altair as alt
 
 def faz_grafico(livros, usar_ano, ano):
+    window_width=st.session_state.window_width
     if usar_ano: livros=livros.query("ano==%s" % (ano))
     """#Variáveis"""
 
-    base_width=80
-    base_height=70
+    base_width=window_width/24
+    base_height=window_width/32
     big_width=7*base_width
     big_height=4*base_height
     font="roustel"
     font_graphs="caveat"
     font_nome="belovedays"
-    font_size=42
-    font_size_grphs=15
-    font_size_grphs_title=30
+    font_size=window_width/46
+    font_size_grphs=window_width/128
+    font_size_grphs_title=window_width/64
 
     Q1=livros.velocidade.quantile(.25)
     Q3=livros.velocidade.quantile(.75)
@@ -264,10 +265,11 @@ def faz_grafico(livros, usar_ano, ano):
             scale=alt.Scale(range=["square", "circle"]),
             legend=alt.Legend(
                 title="Estilo",
-                orient="top-left",
+                orient="none",
                 labelFontSize=font_size_grphs,
                 titleFontSize=font_size_grphs,
-                offset=350
+                legendX=5*base_width,
+                legendY=3*base_height
             )
         ),
         tooltip=[
@@ -292,9 +294,10 @@ def faz_grafico(livros, usar_ano, ano):
             scale=alt.Scale(range=["#4285f4", "blue"]),
             legend=alt.Legend(
                 title="",
-                orient="top-left",
+                orient="none",
                 labelFontSize=font_size_grphs,
-                titleFontSize=font_size_grphs
+                titleFontSize=font_size_grphs,
+                legendY=.5*base_height
             )
         )
     )
@@ -307,12 +310,7 @@ def faz_grafico(livros, usar_ano, ano):
         color=alt.Color(
             "c",
             scale=alt.Scale(range=["#4285f4", "blue"]),
-            legend=alt.Legend(
-                title="",
-                orient="top-left",
-                labelFontSize=font_size_grphs,
-                titleFontSize=font_size_grphs
-            )
+            legend=None
         )
     )
 
@@ -320,7 +318,7 @@ def faz_grafico(livros, usar_ano, ano):
 
     limite_barras_estilo=(livros.groupby("estilo").agg({"livro":"count"}).livro.max()//5+1)*5
 
-    livros_por_estilo=alt.Chart(livros).mark_bar(height=80, cornerRadiusTopRight=5, cornerRadiusBottomRight=5, color="#4285f4").encode(
+    livros_por_estilo=alt.Chart(livros).mark_bar(height=window_width/24, cornerRadiusTopRight=5, cornerRadiusBottomRight=5, color="#4285f4").encode(
         x=alt.X(
             "count(livro):Q",
             scale=alt.Scale(
@@ -383,7 +381,7 @@ def faz_grafico(livros, usar_ano, ano):
 
     limite_barras_nacionalidade=(livros.groupby("nacionalidade").agg({"livro":"count"}).livro.max()//5+1)*5
 
-    livros_por_nacionalidade=alt.Chart(livros).mark_bar(width=30, cornerRadiusTopRight=5, cornerRadiusTopLeft=5, color="#4285f4", dx=-50).encode(
+    livros_por_nacionalidade=alt.Chart(livros).mark_bar(width=window_width/64, cornerRadiusTopRight=5, cornerRadiusTopLeft=5, color="#4285f4", dx=-50).encode(
         x=alt.X(
             "nacionalidade:N",
             sort=alt.EncodingSortField(
@@ -453,9 +451,9 @@ def faz_grafico(livros, usar_ano, ano):
     """#Dash final"""
 
     creditos=((autor_text | autor) & insta)
-    col1=(branco & (livros_por_mes+livros_movel_por_mes) & livros_por_estilo & creditos)
-    col2=(titulo & num_livros & num_paginas & num_nacionalidade & paginas_por_dia & branco & top_do_ano & nomes_livros)
-    col3=(branco & (pontos_velocidade+reta_rapido+reta_lento) & livros_por_nacionalidade)
+    col1=((livros_por_mes+livros_movel_por_mes) & livros_por_estilo & creditos)
+    col2=(num_livros & num_paginas & num_nacionalidade & paginas_por_dia & branco & top_do_ano & nomes_livros)
+    col3=((pontos_velocidade+reta_rapido+reta_lento) & livros_por_nacionalidade)
 
     data=((col1 | col2 | col3)).resolve_scale(
         color='independent',
@@ -466,11 +464,11 @@ def faz_grafico(livros, usar_ano, ano):
         y="independent"
     )
 
-    return data.configure_title(
+    return titulo, data.configure_title(
         font=font_graphs,
         fontSize=1.5*font_size_grphs_title
     )
-def cria_tabs(livros, usar_ano,  ano):
+def cria_tabs(livros, usar_ano, ano):
     # -*- coding: utf-8 -*-
     """relatorio_livros.ipynb
 
@@ -498,5 +496,6 @@ def cria_tabs(livros, usar_ano,  ano):
     livros["livro"]=livros.livro.apply(lambda nome: "\n".join([nome[i:i+lim_letras] for i  in range(0, len(nome), lim_letras)]))
     livros["livro"]=livros.livro.str.replace("\n\n", "\n")
 
-    data=faz_grafico(livros, usar_ano, ano)
+    titulo, data=faz_grafico(livros, usar_ano, ano)
+    st.altair_chart(titulo, use_container_width=True)
     st.altair_chart(data, use_container_width=True)
