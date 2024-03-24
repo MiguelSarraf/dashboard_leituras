@@ -64,6 +64,7 @@ def faz_grafico(livros, usar_ano, ano):
     kpis={"num_livros":[str(livros.livro.count())+" livros"],
           "num_paginas":[str(livros.paginas.sum())+" páginas"],
           "num_nacionalidade":[str(livros.nacionalidade.unique().shape[0])+" nacionalidades"],
+      "num_idiomas":[str(livros.idioma.unique().shape[0])+" idiomas"],
           "paginas_por_dia":[str(round(livros.paginas.sum()/livros.tempo.sum()))+" páginas por dia"],
           "top_do_ano":["Top "+str(livros.ranking.max())+" livros do ano"],
           "titulo":["Relatório de leituras "+str(ano)],
@@ -198,7 +199,7 @@ def faz_grafico(livros, usar_ano, ano):
         )
     ).properties(
         width=base_width,
-        height=base_height
+        height=base_height/100
     )
 
     num_paginas=alt.Chart(kpis).mark_text(baseline="middle", size=font_size, font=font_graphs).encode(
@@ -213,6 +214,15 @@ def faz_grafico(livros, usar_ano, ano):
     num_nacionalidade=alt.Chart(kpis).mark_text(baseline="middle", size=font_size, font=font_graphs).encode(
         text=alt.Text(
             "num_nacionalidade"
+        )
+    ).properties(
+        width=base_width,
+        height=base_height
+    )
+
+    num_idiomas=alt.Chart(kpis).mark_text(baseline="middle", size=font_size, font=font_graphs).encode(
+        text=alt.Text(
+            "num_idiomas"
         )
     ).properties(
         width=base_width,
@@ -268,8 +278,8 @@ def faz_grafico(livros, usar_ano, ano):
                 orient="none",
                 labelFontSize=font_size_grphs,
                 titleFontSize=font_size_grphs,
-                legendX=5*base_width,
-                legendY=3*base_height
+                legendX=6*base_width,
+                legendY=4*base_height-30*(len(livros.estilo.unique()))
             )
         ),
         tooltip=[
@@ -297,7 +307,7 @@ def faz_grafico(livros, usar_ano, ano):
                 orient="none",
                 labelFontSize=font_size_grphs,
                 titleFontSize=font_size_grphs,
-                legendY=.5*base_height
+                # legendY=.5*base_height
             )
         )
     )
@@ -318,7 +328,7 @@ def faz_grafico(livros, usar_ano, ano):
 
     limite_barras_estilo=(livros.groupby("estilo").agg({"livro":"count"}).livro.max()//5+1)*5
 
-    livros_por_estilo=alt.Chart(livros).mark_bar(height=window_width/24, cornerRadiusTopRight=5, cornerRadiusBottomRight=5, color="#4285f4").encode(
+    livros_por_estilo=alt.Chart(livros).mark_bar(height=window_width/(12*len(livros.estilo.unique())), cornerRadiusTopRight=5, cornerRadiusBottomRight=5, color="#4285f4").encode(
         x=alt.X(
             "count(livro):Q",
             scale=alt.Scale(
@@ -381,7 +391,7 @@ def faz_grafico(livros, usar_ano, ano):
 
     limite_barras_nacionalidade=(livros.groupby("nacionalidade").agg({"livro":"count"}).livro.max()//5+1)*5
 
-    livros_por_nacionalidade=alt.Chart(livros).mark_bar(width=window_width/64, cornerRadiusTopRight=5, cornerRadiusTopLeft=5, color="#4285f4", dx=-50).encode(
+    livros_por_nacionalidade=alt.Chart(livros).mark_bar(width=window_width/(5*len(livros.nacionalidade.unique())), cornerRadiusTopRight=5, cornerRadiusTopLeft=5, color="#4285f4", dx=-50).encode(
         x=alt.X(
             "nacionalidade:N",
             sort=alt.EncodingSortField(
@@ -452,7 +462,7 @@ def faz_grafico(livros, usar_ano, ano):
 
     creditos=((autor_text | autor) & insta)
     col1=((livros_por_mes+livros_movel_por_mes) & livros_por_estilo & creditos)
-    col2=(num_livros & num_paginas & num_nacionalidade & paginas_por_dia & branco & top_do_ano & nomes_livros)
+    col2=(num_livros & num_paginas & num_nacionalidade & num_idiomas & paginas_por_dia & top_do_ano & nomes_livros)
     col3=((pontos_velocidade+reta_rapido+reta_lento) & livros_por_nacionalidade)
 
     data=((col1 | col2 | col3)).resolve_scale(
@@ -464,10 +474,129 @@ def faz_grafico(livros, usar_ano, ano):
         y="independent"
     )
 
+    #----------------------------------------------------------------
+
+    from PIL import Image, ImageDraw, ImageFont
+    from unidecode import unidecode
+    from pilmoji import Pilmoji
+
+    bandeiras=pd.read_csv("bandeiras.csv")
+
+    livros.nacionalidade=livros.nacionalidade.apply(unidecode).str.lower()
+    livros=livros.merge(bandeiras, left_on="nacionalidade", right_on="pais", how="left")
+
+    imagens=[]
+
+    base = Image.new(mode="RGB", size=(1080, 1920), color="#c9daf8")
+    desenho=ImageDraw.Draw(base)
+    roustel=ImageFont.truetype(r'Roustel.ttf', 120)
+    caveat=ImageFont.truetype(r'caveat.regular.ttf', 90)
+    mini_caveat=ImageFont.truetype(r'caveat.regular.ttf', 50)
+
+    desenho.text((540,300), "Minhas leituras 2023", fill="black", font=roustel, anchor="mm")
+
+    y=650
+    for metrica in kpis[["num_livros", "num_paginas", "num_nacionalidade", "num_idiomas", "paginas_por_dia"]]:
+      desenho.text((540,y), kpis[metrica].iloc[0], fill="black", font=caveat, anchor="mm")
+      y+=200
+    desenho.text((210,1700), "Desenvolvido por", fill="black", font=mini_caveat, anchor="mm")
+    desenho.text((200,1750), "@sarraf_miguel", fill="black", font=mini_caveat, anchor="mm")
+
+    imagens.append(base)
+
+    base = Image.new(mode="RGB", size=(1080, 1920), color="#c9daf8")
+    desenho=ImageDraw.Draw(base)
+    caveat=ImageFont.truetype(r'caveat.regular.ttf', 70)
+
+    desenho.text((540,300), kpis.top_do_ano.iloc[0], fill="black", font=roustel, anchor="mm")
+
+    y=500
+    for ind, linha in livros.query("ranking>0").sort_values("ranking").iterrows():
+      desenho.text((540,y), linha.livro.replace("\n", " "), fill="black", font=caveat, anchor="mm", align='center')
+      desenho.text((540,y+70), linha.autor, fill="black", font=caveat, anchor="mm")
+      with Pilmoji(base) as pilmoji:
+        pilmoji.text((900,y+50), linha.bandeira, fill="black", font=caveat)
+      y+=200
+    desenho.text((210,1700), "Desenvolvido por", fill="black", font=mini_caveat, anchor="mm")
+    desenho.text((200,1750), "@sarraf_miguel", fill="black", font=mini_caveat, anchor="mm")
+
+    imagens.append(base)
+
+    menor=list(livros[livros.paginas==livros.paginas.min()][["livro", "autor", "paginas"]].iloc[0])
+    if "\n" in menor[0]:
+        menor[0]=menor[0].split("\n")
+        menor[1]=menor[0][1]+"-"+menor[1]
+        menor[0]=menor[0][0]
+    maior=list(livros[livros.paginas==livros.paginas.max()][["livro", "autor", "paginas"]].iloc[0])
+    if "\n" in maior[0]:
+        maior[0]=maior[0].split("\n")
+        maior[1]=maior[0][1]+"-"+maior[1]
+        maior[0]=maior[0][0]
+
+    rapido=list(livros[livros.tempo==livros.tempo.min()][["livro", "autor", "tempo"]].iloc[0])
+    if "\n" in rapido[0]:
+        rapido[0]=rapido[0].split("\n")
+        rapido[1]=rapido[0][1]+"-"+rapido[1]
+        rapido[0]=rapido[0][0]
+    lento=list(livros[livros.tempo==livros.tempo.max()][["livro", "autor", "tempo"]].iloc[0])
+    if "\n" in lento[0]:
+        lento[0]=lento[0].split("\n")
+        lento[1]=lento[0][1]+"-"+lento[1]
+        lento[0]=lento[0][0]
+
+    arrastado=list(livros[livros.velocidade==livros.velocidade.min()][["livro", "autor", "velocidade"]].iloc[0])
+    if "\n" in arrastado[0]:
+        arrastado[0]=arrastado[0].split("\n")
+        arrastado[1]=arrastado[0][1]+"-"+arrastado[1]
+        arrastado[0]=arrastado[0][0]
+    fluido=list(livros[livros.velocidade==livros.velocidade.max()][["livro", "autor", "velocidade"]].iloc[0])
+    if "\n" in fluido[0]:
+        fluido[0]=fluido[0].split("\n")
+        fluido[1]=fluido[0][1]+"-"+fluido[1]
+        fluido[0]=fluido[0][0]
+
+    base = Image.new(mode="RGB", size=(1080, 1920), color="#c9daf8")
+    desenho=ImageDraw.Draw(base)
+
+    desenho.text((340,300), "O menor:", fill="black", font=caveat, anchor="mm")
+    desenho.text((340,360), menor[0].replace("\n", ""), fill="black", font=caveat, anchor="mm")
+    desenho.text((340,420), menor[1], fill="black", font=caveat, anchor="mm")
+    desenho.text((340,480), str(menor[2])+" páginas", fill="black", font=caveat, anchor="mm")
+
+    desenho.text((740,540), "O maior:", fill="black", font=caveat, anchor="mm")
+    desenho.text((740,600), maior[0], fill="black", font=caveat, anchor="mm")
+    desenho.text((740,660), maior[1], fill="black", font=caveat, anchor="mm")
+    desenho.text((740,720), str(maior[2])+" páginas", fill="black", font=caveat, anchor="mm")
+
+    desenho.text((340,780), "O mais rápido:", fill="black", font=caveat, anchor="mm")
+    desenho.text((340,840), rapido[0], align="center", fill="black", font=caveat, anchor="mm")
+    desenho.text((340,900), rapido[1], fill="black", font=caveat, anchor="mm")
+    desenho.text((340,960), str(rapido[2])+" dias", fill="black", font=caveat, anchor="mm")
+
+    desenho.text((740,1020), "O mais lento:", fill="black", font=caveat, anchor="mm")
+    desenho.text((740,1080), lento[0].replace("\n", "")[:25], fill="black", font=caveat, anchor="mm")
+    desenho.text((740,1140), lento[1], fill="black", font=caveat, anchor="mm")
+    desenho.text((740,1200), str(lento[2])+" dias", fill="black", font=caveat, anchor="mm")
+
+    desenho.text((340,1260), "O mais arrastado:", fill="black", font=caveat, anchor="mm")
+    desenho.text((340,1320), arrastado[0], fill="black", font=caveat, anchor="mm")
+    desenho.text((340,1380), arrastado[1], fill="black", font=caveat, anchor="mm")
+    desenho.text((340,1440), str(int(arrastado[2]))+" páginas por dia", fill="black", font=caveat, anchor="mm")
+
+    desenho.text((740,1500), "O mais fluido:", fill="black", font=caveat, anchor="mm")
+    desenho.text((740,1560), fluido[0], fill="black", font=caveat, anchor="mm")
+    desenho.text((740,1620), fluido[1], fill="black", font=caveat, anchor="mm")
+    desenho.text((740,1680), str(int(fluido[2]))+" páginas por dia", fill="black", font=caveat, anchor="mm")
+
+    desenho.text((210,1700), "Desenvolvido por", fill="black", font=mini_caveat, anchor="mm")
+    desenho.text((200,1750), "@sarraf_miguel", fill="black", font=mini_caveat, anchor="mm")
+
+    imagens.append(base)
+
     return titulo, data.configure_title(
         font=font_graphs,
         fontSize=1.5*font_size_grphs_title
-    )
+    ), imagens
 def cria_tabs(livros, usar_ano, ano):
     # -*- coding: utf-8 -*-
     """relatorio_livros.ipynb
@@ -496,6 +625,12 @@ def cria_tabs(livros, usar_ano, ano):
     livros["livro"]=livros.livro.apply(lambda nome: "\n".join([nome[i:i+lim_letras] for i  in range(0, len(nome), lim_letras)]))
     livros["livro"]=livros.livro.str.replace("\n\n", "\n")
 
-    titulo, data=faz_grafico(livros, usar_ano, ano)
+    titulo, data, imagens=faz_grafico(livros, usar_ano, ano)
     st.altair_chart(titulo, use_container_width=True)
     st.altair_chart(data, use_container_width=True)
+    _, col,_=st.columns([3,4,3])
+    col.header("Baixe as telas e compartilhe suas leituras!!!")
+    cols=st.columns(3)
+    cols[0].image(imagens[0])
+    cols[1].image(imagens[1])
+    cols[2].image(imagens[2])
