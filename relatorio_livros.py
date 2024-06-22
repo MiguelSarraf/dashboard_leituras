@@ -3,7 +3,7 @@ import io
 import pandas as pd
 import altair as alt
 
-def faz_grafico(livros, usar_ano, ano):
+def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
     window_width=st.session_state.window_width
     if usar_ano: livros=livros.query("ano==%s" % (ano))
     """#Variáveis"""
@@ -29,13 +29,15 @@ def faz_grafico(livros, usar_ano, ano):
     cor_ranking=livros.query("ranking>0")[["livro", "autor", "nacionalidade", "ranking"]].sort_values("ranking").reset_index()
     cor_ranking["cor_ranking"]=cor_ranking.index%2
 
-    livros_mes=livros.groupby(["ano", "mes"]).agg({"livro":"count"}).reset_index()
+    livros_mes=pd.DataFrame({"mes":[i for i in range(1,13)]})
+    livros_mes=livros_mes.merge(livros.groupby(["ano", "mes"]).agg({"livro":"count"}).reset_index(), on="mes", how="left")
     livros_mes["num_livros"]="Número de Livros"
 
-    tempo_media_movel=4
+
+    livros_mes=livros_mes.fillna(0)
     livros_mes["soma"]=livros_mes.livro
     for tempo in range(1, tempo_media_movel):
-      livros_mes["livro_delay"]=livros_mes.livro.shift(tempo)
+      livros_mes["livro_delay"]=livros_mes.livro.shift(tempo).fillna(0)
       livros_mes.soma+=livros_mes.livro_delay
 
     livros_mes["media_movel"]=livros_mes.soma/tempo_media_movel
@@ -56,6 +58,7 @@ def faz_grafico(livros, usar_ano, ano):
         12:"dez",
     }
     livros_mes["mes_nome"]=livros_mes.mes.map(meses)
+    livros=livros.copy()
     livros["mes_nome"]=livros.mes.map(meses)
 
     rank=livros.query("ranking>0").sort_values("ranking")[["ranking", "livro", "autor", "nacionalidade"]]
@@ -86,11 +89,12 @@ def faz_grafico(livros, usar_ano, ano):
 
     """##Livros por mês"""
 
-    livros_por_mes=alt.Chart(livros).mark_line(color="#4285f4").encode(
+    livros_por_mes=alt.Chart(livros_mes).mark_line(color="#4285f4").encode(
         x=alt.X(
             "mes:O",
             title="Mês",
             axis=alt.Axis(
+                tickMinStep=1,
                 labelAngle=0,
                 grid=True,
                 titleFont=font_graphs,
@@ -99,9 +103,10 @@ def faz_grafico(livros, usar_ano, ano):
             )
         ),
         y=alt.Y(
-            "count(livro):Q",
+            "livro:Q",
             title="",
             axis=alt.Axis(
+                tickMinStep=1,
                 grid=False,
                 titleFont=font_graphs,
                 labelFontSize=font_size_grphs,
@@ -128,7 +133,9 @@ def faz_grafico(livros, usar_ano, ano):
         width=big_width,
         height=big_height,
         title="Livros por mês"
-    ).transform_filter(selector_livro).transform_filter(selector_estilo).transform_filter(selector_nacionalidade)
+    )#.transform_filter(selector_livro).transform_filter(selector_estilo).transform_filter(selector_nacionalidade)
+
+    livros=livros.merge(livros_mes[["mes", "media_movel", "media_movel_tit"]], on="mes")
 
     livros_movel_por_mes=alt.Chart(livros_mes).mark_line(color="blue").encode(
         x=alt.X(
@@ -171,7 +178,7 @@ def faz_grafico(livros, usar_ano, ano):
     ).properties(
         width=big_width,
         height=big_height,
-    ).transform_filter(selector_livro).transform_filter(selector_estilo).transform_filter(selector_nacionalidade)
+    )#.transform_filter(selector_livro).transform_filter(selector_estilo).transform_filter(selector_nacionalidade)
 
     """## KPIS"""
 
@@ -625,7 +632,10 @@ def cria_tabs(livros, usar_ano, ano):
     livros["livro"]=livros.livro.apply(lambda nome: "\n".join([nome[i:i+lim_letras] for i  in range(0, len(nome), lim_letras)]))
     livros["livro"]=livros.livro.str.replace("\n\n", "\n")
 
-    titulo, data, imagens=faz_grafico(livros, usar_ano, ano)
+    parametros=st.columns(4)
+    tempo_media_movel=parametros[0].number_input("Quantos meses devem ser usados no cálculo da média móvel?", 2, 12, 4, 1, "%d")
+
+    titulo, data, imagens=faz_grafico(livros, usar_ano, ano, tempo_media_movel)
     st.altair_chart(titulo, use_container_width=True)
     st.altair_chart(data, use_container_width=True)
     _, col,_=st.columns([3,4,3])
