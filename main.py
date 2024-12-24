@@ -3,8 +3,8 @@ from relatorio_livros import cria_tabs
 import pandas as pd
 from streamlit_js_eval import streamlit_js_eval
 
-__version__="1.3"
-__data__="jun/24"
+__version__="1.4"
+__data__="dez/24"
 
 if "page" not in st.session_state:
 	st.session_state.page="tabela"

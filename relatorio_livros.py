@@ -126,7 +126,7 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
                 symbolSize=100,
                 symbolStrokeWidth=3,
                 legendX=18,
-                legendY=base_height+70
+                legendY=0
             )
         )
     ).properties(
@@ -215,7 +215,7 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
         )
     ).properties(
         width=base_width,
-        height=base_height
+        height=base_height/100
     )
 
     num_nacionalidade=alt.Chart(kpis).mark_text(baseline="middle", size=font_size, font=font_graphs).encode(
@@ -224,7 +224,7 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
         )
     ).properties(
         width=base_width,
-        height=base_height
+        height=base_height/100
     )
 
     num_idiomas=alt.Chart(kpis).mark_text(baseline="middle", size=font_size, font=font_graphs).encode(
@@ -233,7 +233,7 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
         )
     ).properties(
         width=base_width,
-        height=base_height
+        height=base_height/100
     )
 
     paginas_por_dia=alt.Chart(kpis).mark_text(baseline="middle", size=font_size, font=font_graphs, lineBreak='\n').encode(
@@ -242,7 +242,7 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
         )
     ).properties(
         width=base_width,
-        height=base_height
+        height=base_height/100
     )
 
     """## Velocidade de leitura"""
@@ -374,7 +374,7 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
         )
     ).properties(
         width=base_width,
-        height=base_height
+        height=base_height*2
     )
 
     nomes_livros=alt.Chart(cor_ranking).mark_text(baseline="middle", size=font_size_grphs_title, font=font_graphs, lineBreak='\n').encode(
@@ -412,6 +412,7 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
                 titleFont=font_graphs,
                 labelFontSize=font_size_grphs,
                 titleFontSize=font_size_grphs_title,
+                labelOverlap=False
             )
         ),
         y=alt.Y(
@@ -488,6 +489,7 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
     from pilmoji import Pilmoji
 
     bandeiras=pd.read_csv("bandeiras.csv")
+    qrcode=Image.open("qrcode.png")
 
     livros.nacionalidade=livros.nacionalidade.apply(unidecode).str.lower()
     livros=livros.merge(bandeiras, left_on="nacionalidade", right_on="pais", how="left")
@@ -497,10 +499,12 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
     base = Image.new(mode="RGB", size=(1080, 1920), color="#c9daf8")
     desenho=ImageDraw.Draw(base)
     roustel=ImageFont.truetype(r'Roustel.ttf', 120)
+    mini_roustel=ImageFont.truetype(r'Roustel.ttf', 100)
     caveat=ImageFont.truetype(r'caveat.regular.ttf', 90)
     mini_caveat=ImageFont.truetype(r'caveat.regular.ttf', 50)
 
-    desenho.text((540,300), "Minhas leituras 2023", fill="black", font=roustel, anchor="mm")
+    desenho.text((540,200), f"Minhas leituras {ano}", fill="black", font=roustel, anchor="mm")
+    desenho.text((540,350), f"Resumo", fill="black", font=mini_roustel, anchor="mm")
 
     y=650
     for metrica in kpis[["num_livros", "num_paginas", "num_nacionalidade", "num_idiomas", "paginas_por_dia"]]:
@@ -509,15 +513,18 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
     desenho.text((210,1700), "Desenvolvido por", fill="black", font=mini_caveat, anchor="mm")
     desenho.text((200,1750), "@sarraf_miguel", fill="black", font=mini_caveat, anchor="mm")
 
+    base.paste(qrcode.resize((200,200)), (850, 1700))
+
     imagens.append(base)
 
     base = Image.new(mode="RGB", size=(1080, 1920), color="#c9daf8")
     desenho=ImageDraw.Draw(base)
     caveat=ImageFont.truetype(r'caveat.regular.ttf', 70)
 
-    desenho.text((540,300), kpis.top_do_ano.iloc[0], fill="black", font=roustel, anchor="mm")
+    desenho.text((540,200), f"Minhas leituras {ano}", fill="black", font=roustel, anchor="mm")
+    desenho.text((540,350), kpis.top_do_ano.iloc[0], fill="black", font=mini_roustel, anchor="mm")
 
-    y=500
+    y=650
     for ind, linha in livros.query("ranking>0").sort_values("ranking").iterrows():
       desenho.text((540,y), linha.livro.replace("\n", " "), fill="black", font=caveat, anchor="mm", align='center')
       desenho.text((540,y+70), linha.autor, fill="black", font=caveat, anchor="mm")
@@ -526,6 +533,8 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
       y+=200
     desenho.text((210,1700), "Desenvolvido por", fill="black", font=mini_caveat, anchor="mm")
     desenho.text((200,1750), "@sarraf_miguel", fill="black", font=mini_caveat, anchor="mm")
+
+    base.paste(qrcode.resize((200,200)), (850, 1700))
 
     imagens.append(base)
 
@@ -565,38 +574,37 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
     base = Image.new(mode="RGB", size=(1080, 1920), color="#c9daf8")
     desenho=ImageDraw.Draw(base)
 
-    desenho.text((340,300), "O menor:", fill="black", font=caveat, anchor="mm")
-    desenho.text((340,360), menor[0].replace("\n", ""), fill="black", font=caveat, anchor="mm")
-    desenho.text((340,420), menor[1], fill="black", font=caveat, anchor="mm")
-    desenho.text((340,480), str(menor[2])+" páginas", fill="black", font=caveat, anchor="mm")
+    desenho.text((540,200), f"Minhas leituras {ano}", fill="black", font=roustel, anchor="mm")
+    desenho.text((540,350), f"Highlights", fill="black", font=mini_roustel, anchor="mm")
 
-    desenho.text((740,540), "O maior:", fill="black", font=caveat, anchor="mm")
-    desenho.text((740,600), maior[0], fill="black", font=caveat, anchor="mm")
-    desenho.text((740,660), maior[1], fill="black", font=caveat, anchor="mm")
-    desenho.text((740,720), str(maior[2])+" páginas", fill="black", font=caveat, anchor="mm")
+    desenho.text((340,500), f"O menor ({str(menor[2])} páginas):", fill="black", font=caveat, anchor="mm")
+    desenho.text((340,560), menor[0].replace("\n", ""), fill="black", font=caveat, anchor="mm")
+    desenho.text((340,620), menor[1], fill="black", font=caveat, anchor="mm")
 
-    desenho.text((340,780), "O mais rápido:", fill="black", font=caveat, anchor="mm")
-    desenho.text((340,840), rapido[0], align="center", fill="black", font=caveat, anchor="mm")
-    desenho.text((340,900), rapido[1], fill="black", font=caveat, anchor="mm")
-    desenho.text((340,960), str(rapido[2])+" dias", fill="black", font=caveat, anchor="mm")
+    desenho.text((740,700), f"O maior ({str(maior[2])} páginas):", fill="black", font=caveat, anchor="mm")
+    desenho.text((740,760), maior[0], fill="black", font=caveat, anchor="mm")
+    desenho.text((740,820), maior[1], fill="black", font=caveat, anchor="mm")
 
-    desenho.text((740,1020), "O mais lento:", fill="black", font=caveat, anchor="mm")
-    desenho.text((740,1080), lento[0].replace("\n", "")[:25], fill="black", font=caveat, anchor="mm")
-    desenho.text((740,1140), lento[1], fill="black", font=caveat, anchor="mm")
-    desenho.text((740,1200), str(lento[2])+" dias", fill="black", font=caveat, anchor="mm")
+    desenho.text((340,900), f"O mais rápido ({str(rapido[2])} dias):", fill="black", font=caveat, anchor="mm")
+    desenho.text((340,960), rapido[0], align="center", fill="black", font=caveat, anchor="mm")
+    desenho.text((340,1020), rapido[1], fill="black", font=caveat, anchor="mm")
 
-    desenho.text((340,1260), "O mais arrastado:", fill="black", font=caveat, anchor="mm")
-    desenho.text((340,1320), arrastado[0], fill="black", font=caveat, anchor="mm")
-    desenho.text((340,1380), arrastado[1], fill="black", font=caveat, anchor="mm")
-    desenho.text((340,1440), str(int(arrastado[2]))+" páginas por dia", fill="black", font=caveat, anchor="mm")
+    desenho.text((740,1100), f"O mais lento ({str(lento[2])} dias):", fill="black", font=caveat, anchor="mm")
+    desenho.text((740,1160), lento[0].replace("\n", "")[:25], fill="black", font=caveat, anchor="mm")
+    desenho.text((740,1220), lento[1], fill="black", font=caveat, anchor="mm")
 
-    desenho.text((740,1500), "O mais fluido:", fill="black", font=caveat, anchor="mm")
+    desenho.text((340,1300), f"O mais moroso ({str(int(arrastado[2]))} pág/dia):", fill="black", font=caveat, anchor="mm")
+    desenho.text((340,1360), arrastado[0], fill="black", font=caveat, anchor="mm")
+    desenho.text((340,1420), arrastado[1], fill="black", font=caveat, anchor="mm")
+
+    desenho.text((740,1500), f"O mais fluido ({str(int(fluido[2]))} pág/dia):", fill="black", font=caveat, anchor="mm")
     desenho.text((740,1560), fluido[0], fill="black", font=caveat, anchor="mm")
     desenho.text((740,1620), fluido[1], fill="black", font=caveat, anchor="mm")
-    desenho.text((740,1680), str(int(fluido[2]))+" páginas por dia", fill="black", font=caveat, anchor="mm")
 
     desenho.text((210,1700), "Desenvolvido por", fill="black", font=mini_caveat, anchor="mm")
     desenho.text((200,1750), "@sarraf_miguel", fill="black", font=mini_caveat, anchor="mm")
+
+    base.paste(qrcode.resize((200,200)), (850, 1700))
 
     imagens.append(base)
 
