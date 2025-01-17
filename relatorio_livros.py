@@ -5,7 +5,6 @@ import altair as alt
 
 def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
     window_width=st.session_state.window_width
-    if usar_ano: livros=livros.query("ano==%s" % (ano))
     """#Variáveis"""
 
     base_width=window_width/24
@@ -19,11 +18,19 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
     font_size_grphs=window_width/128
     font_size_grphs_title=window_width/64
 
+
+    livros["velocidade"]=round(livros.paginas/livros.tempo)
+    lim_letras=25
     Q1=livros.velocidade.quantile(.25)
     Q3=livros.velocidade.quantile(.75)
     IQR=Q3-Q1
     lim_inf=Q1-1.5*IQR
     lim_sup=Q3+1.5*IQR
+    livros["outlier"]=livros.velocidade.apply(lambda vel: "Rápido" if vel>lim_sup else "Devagar" if vel<lim_inf else "Normal")
+    livros["mes"]=livros.data.dt.month
+    livros["num_livros"]="Número de Livros"
+    livros["livro"]=livros.livro.apply(lambda nome: "\n".join([nome[i:i+lim_letras] for i  in range(0, len(nome), lim_letras)]))
+    livros["livro"]=livros.livro.str.replace("\n\n", "\n")
 
     """##Agregações"""
     cor_ranking=livros.query("ranking>0")[["livro", "autor", "nacionalidade", "ranking"]].sort_values("ranking").reset_index()
@@ -293,7 +300,9 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
             alt.Tooltip("livro", title="Livro"),
             alt.Tooltip("velocidade", title="Páginas/dia"),
             alt.Tooltip("estilo", title="Estilo"),
-            alt.Tooltip("outlier", title="Velocidade")
+            alt.Tooltip("outlier", title="Velocidade"),
+            alt.Tooltip("paginas", title="Páginas"),
+            alt.Tooltip("tempo", title="Dias")
         ]
     ).properties(
         width=big_width,
@@ -626,19 +635,7 @@ def cria_tabs(livros, usar_ano, ano):
 
     ##Novas colunas
     """
-
-    livros["velocidade"]=round(livros.paginas/livros.tempo)
-    lim_letras=25
-    Q1=livros.velocidade.quantile(.25)
-    Q3=livros.velocidade.quantile(.75)
-    IQR=Q3-Q1
-    lim_inf=Q1-1.5*IQR
-    lim_sup=Q3+1.5*IQR
-    livros["outlier"]=livros.velocidade.apply(lambda vel: "Rápido" if vel>lim_sup else "Devagar" if vel<lim_inf else "Normal")
-    livros["mes"]=livros.data.dt.month
-    livros["num_livros"]="Número de Livros"
-    livros["livro"]=livros.livro.apply(lambda nome: "\n".join([nome[i:i+lim_letras] for i  in range(0, len(nome), lim_letras)]))
-    livros["livro"]=livros.livro.str.replace("\n\n", "\n")
+    if usar_ano: livros=livros.query("ano==%s" % (ano))
 
     parametros=st.columns(4)
     tempo_media_movel=parametros[0].number_input("Quantos meses devem ser usados no cálculo da média móvel?", 2, 12, 4, 1, "%d")
