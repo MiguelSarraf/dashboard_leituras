@@ -3,7 +3,7 @@ import io
 import pandas as pd
 import altair as alt
 
-def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
+def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
     window_width=st.session_state.window_width
     """#Variáveis"""
 
@@ -18,15 +18,7 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
     font_size_grphs=window_width/128
     font_size_grphs_title=window_width/64
 
-
-    livros["velocidade"]=round(livros.paginas/livros.tempo)
     lim_letras=25
-    Q1=livros.velocidade.quantile(.25)
-    Q3=livros.velocidade.quantile(.75)
-    IQR=Q3-Q1
-    lim_inf=Q1-1.5*IQR
-    lim_sup=Q3+1.5*IQR
-    livros["outlier"]=livros.velocidade.apply(lambda vel: "Rápido" if vel>lim_sup else "Devagar" if vel<lim_inf else "Normal")
     livros["mes"]=livros.data.dt.month
     livros["num_livros"]="Número de Livros"
     livros["livro"]=livros.livro.apply(lambda nome: "\n".join([nome[i:i+lim_letras] for i  in range(0, len(nome), lim_letras)]))
@@ -312,7 +304,8 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
 
     reta_rapido=alt.Chart(pd.DataFrame({"x":[0, livros.tempo.max(), livros.paginas.max()/lim_sup],
                                         "y":[0, livros.tempo.max()*lim_sup, livros.paginas.max()],
-                                        "c":["Divisor lidos rápido"]*3})).mark_line(color="gray", strokeDash=[15,15], clip=True).encode(
+                                        "c":["Divisor lidos rápido"]*3,
+                                        })).mark_line(color="gray", strokeDash=[15,15], clip=True).encode(
         x=alt.X("x",scale=alt.Scale(domain=[0,max_dias])),
         y=alt.Y("y",scale=alt.Scale(domain=[0,max_pags])),
         color=alt.Color(
@@ -325,19 +318,20 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
                 titleFontSize=font_size_grphs,
                 # legendY=.5*base_height
             )
-        )
+        ),
     )
 
     reta_lento=alt.Chart(pd.DataFrame({"x":[0, livros.tempo.max(), livros.paginas.max()/lim_inf],
                                        "y":[0, livros.tempo.max()*lim_inf, livros.paginas.max()],
-                                        "c":["Divisor lidos devagar"]*3})).mark_line(color="gray", strokeDash=[15,15], clip=True).encode(
+                                       "c":["Divisor lidos devagar"]*3,
+                                       })).mark_line(color="gray", strokeDash=[15,15], clip=True).encode(
         x=alt.X("x",scale=alt.Scale(domain=[0,max_dias])),
         y=alt.Y("y",scale=alt.Scale(domain=[0,max_pags])),
         color=alt.Color(
             "c",
             scale=alt.Scale(range=["#4285f4", "blue"]),
             legend=None
-        )
+        ),
     )
 
     """## Livros por estilo"""
@@ -635,12 +629,31 @@ def cria_tabs(livros, usar_ano, ano):
 
     ##Novas colunas
     """
-    if usar_ano: livros=livros.query("ano==%s" % (ano))
-
     parametros=st.columns(4)
     tempo_media_movel=parametros[0].number_input("Quantos meses devem ser usados no cálculo da média móvel?", 2, 12, 4, 1, "%d")
+    tipo_outlier = parametros[1].toggle("Usar apenas ano selecionado para cálculo de ouliers", value=True)
 
-    titulo, data, imagens=faz_grafico(livros, usar_ano, ano, tempo_media_movel)
+    livros["velocidade"]=livros.paginas/livros.tempo
+    Q1=livros.velocidade.quantile(.25)
+    Q3=livros.velocidade.quantile(.75)
+    IQR=Q3-Q1
+    lim_inf=Q1-1.5*IQR
+    lim_sup=Q3+1.5*IQR
+
+    if usar_ano:
+        livros=livros.query("ano==%s" % (ano))
+
+        if tipo_outlier:
+            livros["velocidade"]=livros.paginas/livros.tempo
+            Q1=livros.velocidade.quantile(.25)
+            Q3=livros.velocidade.quantile(.75)
+            IQR=Q3-Q1
+            lim_inf=Q1-1.5*IQR
+            lim_sup=Q3+1.5*IQR
+
+    livros["outlier"]=livros.velocidade.apply(lambda vel: "Rápido" if vel>lim_sup else "Devagar" if vel<lim_inf else "Normal")
+
+    titulo, data, imagens=faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup)
     st.altair_chart(titulo, use_container_width=True)
     st.altair_chart(data, use_container_width=True)
     _, col,_=st.columns([3,4,3])
