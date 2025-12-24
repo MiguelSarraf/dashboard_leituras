@@ -488,7 +488,7 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
     from unidecode import unidecode
     from pilmoji import Pilmoji
 
-    bandeiras=pd.read_csv("bandeiras.csv")
+    bandeiras=pd.read_csv("bandeiras.csv", dtype="str")
     qrcode=Image.open("qrcode.png")
 
     livros.nacionalidade=livros.nacionalidade.apply(unidecode).str.lower()
