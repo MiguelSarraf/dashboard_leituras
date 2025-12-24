@@ -526,7 +526,6 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel):
     desenho.text((540,350), kpis.top_do_ano.iloc[0], fill="black", font=mini_roustel, anchor="mm")
 
     y=650
-    print(livros)
     for ind, linha in livros.query("ranking>0").sort_values("ranking").iterrows():
       desenho.text((540,y), linha.livro.replace("\n", " "), fill="black", font=caveat, anchor="mm", align='center')
       desenho.text((540,y+70), linha.autor, fill="black", font=caveat, anchor="mm")
