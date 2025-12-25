@@ -341,8 +341,25 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
 
     limite_barras_estilo=(livros.groupby("estilo").agg({"livro":"count"}).livro.max()//5+1)*5
 
-    livros_por_estilo=alt.Chart(livros).mark_bar(height=window_width/(12*len(livros.estilo.unique())), cornerRadiusTopRight=5, cornerRadiusBottomRight=5, color="#4285f4").encode(
+
+    livros_por_estilo=alt.Chart(livros).mark_bar(width=window_width/(5*len(livros.estilo.unique())), cornerRadiusTopRight=5, cornerRadiusTopLeft=5, color="#4285f4", dx=-50).encode(
         x=alt.X(
+            "estilo:N",
+            sort=alt.EncodingSortField(
+                field="livro",
+                op="count",
+                order='descending'
+            ),
+            axis=alt.Axis(
+                labelAngle=0,
+                title="Estilo",
+                titleFont=font_graphs,
+                labelFontSize=font_size_grphs,
+                titleFontSize=font_size_grphs_title,
+                labelOverlap=False
+            )
+        ),
+        y=alt.Y(
             "count(livro):Q",
             scale=alt.Scale(
                 domain=[0,limite_barras_estilo]
@@ -354,22 +371,13 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
                 titleFontSize=font_size_grphs_title
             )
         ),
-        y=alt.Y(
-            "estilo:N",
-            axis=alt.Axis(
-                title="",
-                titleFont=font_graphs,
-                labelFontSize=font_size_grphs,
-                titleFontSize=font_size_grphs_title
-            )
-        ),
         tooltip=[
-            alt.Tooltip("count(livro)", title="Número de livros"),
+            alt.Tooltip("count(livro)", title="Número de livros")
         ]
     ).properties(
         width=big_width,
         height=big_height,
-        title="Livros por estilo"
+        title="Livros por nacionalidade"
     ).add_params(selector_estilo).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
 
     """## Top livros"""
@@ -404,8 +412,8 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
 
     limite_barras_nacionalidade=(livros.groupby("nacionalidade").agg({"livro":"count"}).livro.max()//5+1)*5
 
-    livros_por_nacionalidade=alt.Chart(livros).mark_bar(width=window_width/(5*len(livros.nacionalidade.unique())), cornerRadiusTopRight=5, cornerRadiusTopLeft=5, color="#4285f4", dx=-50).encode(
-        x=alt.X(
+    livros_por_nacionalidade=alt.Chart(livros).mark_bar(height=window_width/(12*len(livros.nacionalidade.unique())), cornerRadiusTopRight=5, cornerRadiusBottomRight=5, color="#4285f4").encode(
+        y=alt.Y(
             "nacionalidade:N",
             sort=alt.EncodingSortField(
                 field="livro",
@@ -413,33 +421,32 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
                 order='descending'
             ),
             axis=alt.Axis(
-                labelAngle=-30,
-                title="Nacionalidade",
-                titleFont=font_graphs,
-                labelFontSize=font_size_grphs,
-                titleFontSize=font_size_grphs_title,
-                labelOverlap=False
-            )
-        ),
-        y=alt.Y(
-            "count(livro):Q",
-            scale=alt.Scale(
-                domain=[0,limite_barras_nacionalidade]
-            ),
-            axis=alt.Axis(
+                labelAngle=0,
                 title="",
                 titleFont=font_graphs,
                 labelFontSize=font_size_grphs,
                 titleFontSize=font_size_grphs_title
             )
         ),
+        x=alt.X(
+            "count(livro):Q",
+            scale=alt.Scale(
+                domain=[0,limite_barras_nacionalidade]
+            ),
+            axis=alt.Axis(
+                title="Número de livros",
+                titleFont=font_graphs,
+                labelFontSize=font_size_grphs,
+                titleFontSize=font_size_grphs_title
+            )
+        ),
         tooltip=[
-            alt.Tooltip("count(livro)", title="Número de livros")
+            alt.Tooltip("count(livro)", title="Número de livros"),
         ]
     ).properties(
         width=big_width,
         height=big_height,
-        title="Livros por nacionalidade"
+        title="Livros por estilo"
     ).add_params(selector_nacionalidade).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
 
     """## Créditos"""
