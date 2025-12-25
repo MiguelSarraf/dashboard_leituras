@@ -285,7 +285,7 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
                 labelFontSize=font_size_grphs,
                 titleFontSize=font_size_grphs,
                 legendX=6*base_width,
-                legendY=4*base_height-30*(len(livros.estilo.unique()))
+                legendY=11*base_height-30*(len(livros.estilo.unique()))
             )
         ),
         tooltip=[
@@ -316,7 +316,7 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
                 orient="none",
                 labelFontSize=font_size_grphs,
                 titleFontSize=font_size_grphs,
-                # legendY=.5*base_height
+                legendY=7*base_height
             )
         ),
     )
@@ -472,9 +472,9 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
     """#Dash final"""
 
     creditos=((autor_text | autor) & insta)
-    col1=((livros_por_mes+livros_movel_por_mes) & livros_por_estilo & creditos)
+    col1=((livros_por_mes+livros_movel_por_mes) & (pontos_velocidade+reta_rapido+reta_lento) & creditos)
     col2=(num_livros & num_paginas & num_nacionalidade & num_idiomas & paginas_por_dia & top_do_ano & nomes_livros)
-    col3=((pontos_velocidade+reta_rapido+reta_lento) & livros_por_nacionalidade)
+    col3=(livros_por_estilo & livros_por_nacionalidade)
 
     data=((col1 | col2 | col3)).resolve_scale(
         color='independent',
