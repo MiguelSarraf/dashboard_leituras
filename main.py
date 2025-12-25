@@ -4,7 +4,7 @@ import pandas as pd
 from streamlit_js_eval import streamlit_js_eval
 
 __version__="1.5"
-__data__="ago/25"
+__data__="dez/25"
 
 if "page" not in st.session_state:
 	st.session_state.page="tabela"
