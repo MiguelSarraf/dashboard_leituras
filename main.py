@@ -35,7 +35,7 @@ if st.session_state.page=="tabela":
 		st.rerun()
 
 elif st.session_state.page=="relatorio":
-	st.set_page_config(layout = "wide")
+	st.set_page_config(layout = "wide", initial_sidebar_state="collapsed")
 
 	livros=st.session_state.path
 	livros["data"]=pd.to_datetime(livros.data, format="%d/%m/%y", )

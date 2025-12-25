@@ -91,7 +91,8 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
 
     """##Livros por mês"""
 
-    livros_por_mes=alt.Chart(livros_mes).mark_line(color="#4285f4").encode(
+    livros_por_mes_title = alt.TitleParams('Livros por mês', anchor='middle')
+    livros_por_mes=alt.Chart(livros_mes, title=livros_por_mes_title).mark_line(color="#4285f4").encode(
         x=alt.X(
             "mes:O",
             title="Mês",
@@ -134,7 +135,6 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
     ).properties(
         width=big_width,
         height=big_height,
-        title="Livros por mês"
     )#.transform_filter(selector_livro).transform_filter(selector_estilo).transform_filter(selector_nacionalidade)
 
     livros=livros.merge(livros_mes[["mes", "media_movel", "media_movel_tit"]], on="mes")
@@ -252,7 +252,8 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
     max_dias=livros.tempo.max()
     max_pags=livros.paginas.max()
 
-    pontos_velocidade=alt.Chart(livros).mark_point(filled=True, size=70).encode(
+    pontos_velocidade_title = alt.TitleParams('Velocidade de leitura', anchor='middle')
+    pontos_velocidade=alt.Chart(livros, title=pontos_velocidade_title).mark_point(filled=True, size=70).encode(
         x=alt.X(
             "tempo:Q",
             title="Dias",
@@ -302,7 +303,6 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
     ).properties(
         width=big_width,
         height=big_height,
-        title="Velocidade de leitura"
     ).add_params(selector_livro).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
 
     reta_rapido=alt.Chart(pd.DataFrame({"x":[0, livros.tempo.max(), livros.paginas.max()/lim_sup],
@@ -341,8 +341,8 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
 
     limite_barras_estilo=(livros.groupby("estilo").agg({"livro":"count"}).livro.max()//5+1)*5
 
-
-    livros_por_estilo=alt.Chart(livros).mark_bar(width=window_width/(5*len(livros.estilo.unique())), cornerRadiusTopRight=5, cornerRadiusTopLeft=5, color="#4285f4", dx=-50).encode(
+    livros_por_estilo_title = alt.TitleParams('Livros por estilo', anchor='middle')
+    livros_por_estilo=alt.Chart(livros, title=livros_por_estilo_title).mark_bar(width=window_width/(5*len(livros.estilo.unique())), cornerRadiusTopRight=5, cornerRadiusTopLeft=5, color="#4285f4", dx=-50).encode(
         x=alt.X(
             "estilo:N",
             sort=alt.EncodingSortField(
@@ -377,7 +377,6 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
     ).properties(
         width=big_width,
         height=big_height,
-        title="Livros por nacionalidade"
     ).add_params(selector_estilo).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
 
     """## Top livros"""
@@ -412,7 +411,8 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
 
     limite_barras_nacionalidade=(livros.groupby("nacionalidade").agg({"livro":"count"}).livro.max()//5+1)*5
 
-    livros_por_nacionalidade=alt.Chart(livros).mark_bar(height=window_width/(12*len(livros.nacionalidade.unique())), cornerRadiusTopRight=5, cornerRadiusBottomRight=5, color="#4285f4").encode(
+    livros_por_nacionalidade_title = alt.TitleParams('Livros por nacionalidade', anchor='middle')
+    livros_por_nacionalidade=alt.Chart(livros, title=livros_por_nacionalidade_title).mark_bar(height=window_width/(12*len(livros.nacionalidade.unique())), cornerRadiusTopRight=5, cornerRadiusBottomRight=5, color="#4285f4").encode(
         y=alt.Y(
             "nacionalidade:N",
             sort=alt.EncodingSortField(
@@ -446,7 +446,6 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
     ).properties(
         width=big_width,
         height=big_height,
-        title="Livros por estilo"
     ).add_params(selector_nacionalidade).transform_filter(selector_estilo).transform_filter(selector_nacionalidade).transform_filter(selector_livro)
 
     """## Créditos"""
