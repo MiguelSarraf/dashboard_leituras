@@ -494,6 +494,7 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
     bandeiras=pd.read_csv("bandeiras.csv")
     qrcode=Image.open("qrcode.png")
 
+    #TODO:There must be added some check to see whether the provided country is in `bandeiras.csv`, otherwise, an error occurs
     livros.nacionalidade=livros.nacionalidade.apply(unidecode).str.lower()
     livros=livros.merge(bandeiras, left_on="nacionalidade", right_on="pais", how="left")
 
