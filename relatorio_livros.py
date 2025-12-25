@@ -27,6 +27,9 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
     """##Agregações"""
     cor_ranking=livros.query("ranking>0")[["livro", "autor", "nacionalidade", "ranking"]].sort_values("ranking").reset_index()
     cor_ranking["cor_ranking"]=cor_ranking.index%2
+    cor_ranking["num_linhas_extras"]=(cor_ranking["livro"].str.len()-1)//lim_letras
+    cor_ranking["ranking"]=cor_ranking.ranking.apply(lambda ranking: ranking+cor_ranking[cor_ranking.ranking<ranking].num_linhas_extras.sum())
+    cor_ranking["ranking"]=cor_ranking.ranking.max()-cor_ranking.ranking
 
     livros_mes=pd.DataFrame({"mes":[i for i in range(1,13)]})
     livros_mes=livros_mes.merge(livros.groupby(["ano", "mes"]).agg({"livro":"count"}).reset_index(), on="mes", how="left")
@@ -103,9 +106,9 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
         ),
         y=alt.Y(
             "livro:Q",
-            title="",
+            title="Número de livros",
             axis=alt.Axis(
-                tickMinStep=1,
+                tickCount=max(livros_mes.livro),
                 grid=False,
                 titleFont=font_graphs,
                 labelFontSize=font_size_grphs,
@@ -381,7 +384,7 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
     )
 
     nomes_livros=alt.Chart(cor_ranking).mark_text(baseline="middle", size=font_size_grphs_title, font=font_graphs, lineBreak='\n').encode(
-        y=alt.Y('ranking:O',axis=None),
+        y=alt.Y('ranking:Q',axis=None),
         text="livro",
         color=alt.Color(
             "cor_ranking:N",
@@ -495,8 +498,8 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
     qrcode=Image.open("qrcode.png")
 
     #TODO:There must be added some check to see whether the provided country is in `bandeiras.csv`, otherwise, an error occurs
-    livros.nacionalidade=livros.nacionalidade.apply(unidecode).str.lower()
-    livros=livros.merge(bandeiras, left_on="nacionalidade", right_on="pais", how="left")
+    livros["nacionalidade_decode"]=livros.nacionalidade.apply(unidecode).str.lower()
+    livros=livros.merge(bandeiras, left_on="nacionalidade_decode", right_on="pais", how="left")
 
     imagens=[]
 
@@ -530,7 +533,7 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
 
     y=650
     for ind, linha in livros.query("ranking>0").sort_values("ranking").iterrows():
-      desenho.text((540,y), linha.livro.replace("\n", " "), fill="black", font=caveat, anchor="mm", align='center')
+      desenho.text((540,y), linha.livro.replace("\n", ""), fill="black", font=caveat, anchor="mm", align='center')
       desenho.text((540,y+70), linha.autor, fill="black", font=caveat, anchor="mm")
       with Pilmoji(base) as pilmoji:
         pilmoji.text((900,y+50), linha.bandeira, fill="black", font=caveat)
@@ -546,33 +549,39 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
     if "\n" in menor[0]:
         menor[0]=menor[0].split("\n")
         menor[1]=menor[0][1]+"-"+menor[1]
+        if len(menor[1])>lim_letras: menor[1]=menor[0][1]
         menor[0]=menor[0][0]
     maior=list(livros[livros.paginas==livros.paginas.max()][["livro", "autor", "paginas"]].iloc[0])
     if "\n" in maior[0]:
         maior[0]=maior[0].split("\n")
         maior[1]=maior[0][1]+"-"+maior[1]
+        if len(maior[1])>lim_letras: maior[1]=maior[0][1]
         maior[0]=maior[0][0]
 
     rapido=list(livros[livros.tempo==livros.tempo.min()][["livro", "autor", "tempo"]].iloc[0])
     if "\n" in rapido[0]:
         rapido[0]=rapido[0].split("\n")
         rapido[1]=rapido[0][1]+"-"+rapido[1]
+        if len(rapido[1])>lim_letras: rapido[1]=rapido[0][1]
         rapido[0]=rapido[0][0]
     lento=list(livros[livros.tempo==livros.tempo.max()][["livro", "autor", "tempo"]].iloc[0])
     if "\n" in lento[0]:
         lento[0]=lento[0].split("\n")
         lento[1]=lento[0][1]+"-"+lento[1]
+        if len(lento[1])>lim_letras: lento[1]=lento[0][1]
         lento[0]=lento[0][0]
 
     arrastado=list(livros[livros.velocidade==livros.velocidade.min()][["livro", "autor", "velocidade"]].iloc[0])
     if "\n" in arrastado[0]:
         arrastado[0]=arrastado[0].split("\n")
         arrastado[1]=arrastado[0][1]+"-"+arrastado[1]
+        if len(arrastado[1])>lim_letras: arrastado[1]=arrastado[0][1]
         arrastado[0]=arrastado[0][0]
     fluido=list(livros[livros.velocidade==livros.velocidade.max()][["livro", "autor", "velocidade"]].iloc[0])
     if "\n" in fluido[0]:
         fluido[0]=fluido[0].split("\n")
         fluido[1]=fluido[0][1]+"-"+fluido[1]
+        if len(fluido[1])>lim_letras: fluido[1]=fluido[0][1]
         fluido[0]=fluido[0][0]
 
     base = Image.new(mode="RGB", size=(1080, 1920), color="#c9daf8")
