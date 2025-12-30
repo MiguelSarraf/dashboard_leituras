@@ -631,7 +631,7 @@ def faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup):
         font=font_graphs,
         fontSize=1.5*font_size_grphs_title
     ), imagens
-def cria_tabs(livros, usar_ano, ano):
+def cria_tabs(livros, usar_ano, ano, is_pc):
     # -*- coding: utf-8 -*-
     """relatorio_livros.ipynb
 
@@ -645,9 +645,9 @@ def cria_tabs(livros, usar_ano, ano):
 
     ##Novas colunas
     """
-    parametros=st.columns(4)
-    tempo_media_movel=parametros[0].number_input("Quantos meses devem ser usados no cálculo da média móvel?", 2, 12, 4, 1, "%d")
-    tipo_outlier = parametros[1].toggle("Usar apenas ano selecionado para cálculo de ouliers", value=True)
+    if is_pc: parametros=st.columns(4)
+    tempo_media_movel=parametros[0].number_input("Quantos meses devem ser usados no cálculo da média móvel?", 2, 12, 4, 1, "%d") if is_pc else 4
+    tipo_outlier = parametros[1].toggle("Usar apenas ano selecionado para cálculo de ouliers", value=True) if is_pc else True
 
     livros["velocidade"]=livros.paginas/livros.tempo
     Q1=livros.velocidade.quantile(.25)
@@ -670,8 +670,8 @@ def cria_tabs(livros, usar_ano, ano):
     livros["outlier"]=livros.velocidade.apply(lambda vel: "Rápido" if vel>lim_sup else "Devagar" if vel<lim_inf else "Normal")
 
     titulo, data, imagens=faz_grafico(livros, usar_ano, ano, tempo_media_movel, lim_inf, lim_sup)
-    st.altair_chart(titulo, use_container_width=True)
-    st.altair_chart(data, use_container_width=True)
+    if is_pc: st.altair_chart(titulo, use_container_width=True)
+    if is_pc: st.altair_chart(data, use_container_width=True)
     _, col,_=st.columns([3,4,3])
     col.header("Baixe as telas e compartilhe suas leituras!!!")
     cols=st.columns(3)

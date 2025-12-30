@@ -2,6 +2,8 @@ import streamlit as st
 from relatorio_livros import cria_tabs
 import pandas as pd
 from streamlit_js_eval import streamlit_js_eval
+from streamlit_javascript import st_javascript
+from user_agents import parse
 
 __version__="1.5"
 __data__="dez/25"
@@ -23,6 +25,11 @@ if st.session_state.page=="tabela":
 	gera_modelo=col1.button("Clique aqui para gerar relatório com a tabela de exemplo")
 	carrega=col2.file_uploader("Suba aqui sua tabela para montar seu relatório", type=["xlsx"])
 	st.write("Versão %s de %s" % (__version__, __data__))
+
+	ua_string = st_javascript("""window.navigator.userAgent;""")
+	user_agent = parse(ua_string if ua_string else "")
+	st.session_state.is_session_pc = user_agent.is_pc
+
 	if carrega:
 		st.session_state.page="relatorio"
 		st.session_state.path = pd.read_excel(carrega)
@@ -35,7 +42,12 @@ if st.session_state.page=="tabela":
 		st.rerun()
 
 elif st.session_state.page=="relatorio":
-	st.set_page_config(layout = "wide", initial_sidebar_state="collapsed")
+	if not st.session_state.is_session_pc:
+		st.caption(":red[Você pode acessar mais funcionalidades da plataforma se acessar o site pelo computador, mas aqui pelo celular você pode gerar suas telas compartilháveis :wink:]")
+	try:
+		st.set_page_config(layout = "wide", initial_sidebar_state="collapsed")
+	except:
+		pass
 
 	livros=st.session_state.path
 	livros["data"]=pd.to_datetime(livros.data, format="%d/%m/%y", )
@@ -53,12 +65,12 @@ elif st.session_state.page=="relatorio":
 		usar_anos=False
 	if "ano" not in st.session_state:st.session_state.ano=max(anos)
 
-	cria_tabs(livros, usar_anos, st.session_state.ano)
+	cria_tabs(livros, usar_anos, st.session_state.ano, st.session_state.is_session_pc)
 
 	st.markdown("""
 	<style>
 	.big-font {
-	    font-size:30px !important;
+		font-size:30px !important;
 	}
 	</style>
 	""", unsafe_allow_html=True)
